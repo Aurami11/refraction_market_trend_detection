@@ -17,10 +17,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-
-# ============================================================
 # PARAMETRES UTILISATEUR
-# ============================================================
 
 UNIVERSE_GROUPS = {
     # US core / styles / factors
@@ -138,10 +135,7 @@ SEC_FEE_PER_DOLLAR_SOLD = 20.60 / 1_000_000.0
 SLIPPAGE_BPS_PER_SIDE = 0.0
 MIN_TRADE_DOLLARS = 100.0
 
-
-# ============================================================
 # CONFIG
-# ============================================================
 
 @dataclass
 class Config:
@@ -202,10 +196,7 @@ class Config:
     slippage_bps_per_side: float = SLIPPAGE_BPS_PER_SIDE
     min_trade_dollars: float = MIN_TRADE_DOLLARS
 
-
-# ============================================================
 # ETAT REDUIT
-# ============================================================
 
 BASE_STATE_COLS = [
     "theta",
@@ -227,10 +218,7 @@ DELTA_STATE_COLS = [
 
 STATE_COLS = BASE_STATE_COLS + DELTA_STATE_COLS
 
-
-# ============================================================
 # UTILITAIRES
-# ============================================================
 
 def safe_name(name: str) -> str:
     return (
@@ -432,10 +420,7 @@ def apply_caps(raw_scores: pd.Series, group_map: Dict[str, str], asset_cap: floa
 
     return {k: float(v) for k, v in w.items() if v > 0}
 
-
-# ============================================================
 # DONNEES
-# ============================================================
 
 def load_ohlc(ticker: str, cfg: Config) -> pd.DataFrame:
     ensure_dir(cfg.cache_dir)
@@ -477,10 +462,7 @@ def load_ohlc(ticker: str, cfg: Config) -> pd.DataFrame:
     df.to_csv(path)
     return df
 
-
-# ============================================================
 # FEATURES
-# ============================================================
 
 def build_features(ohlc: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     df = ohlc.copy()
@@ -526,10 +508,7 @@ def build_features(ohlc: pd.DataFrame, cfg: Config) -> pd.DataFrame:
 
     return df
 
-
-# ============================================================
 # SEGMENTS
-# ============================================================
 
 def locally_compatible(prev_row: pd.Series, cur_row: pd.Series, cfg: Config) -> bool:
     angle_close = abs(float(cur_row["theta"]) - float(prev_row["theta"])) <= cfg.angle_tol
@@ -600,10 +579,7 @@ def build_causal_state(features: pd.DataFrame, cfg: Config) -> pd.DataFrame:
 
     return df
 
-
-# ============================================================
 # LABELS EVENEMENTIELS
-# ============================================================
 
 def build_event_labels(features: pd.DataFrame) -> pd.DataFrame:
     df = features.copy()
@@ -667,10 +643,7 @@ def build_event_labels(features: pd.DataFrame) -> pd.DataFrame:
 
     return labels
 
-
-# ============================================================
 # MODELES
-# ============================================================
 
 def fit_logistic_binary(
     X: pd.DataFrame,
@@ -855,10 +828,7 @@ def summarize_next_segment_stats(train_labels: pd.DataFrame) -> Dict[str, Any]:
 
     return out
 
-
-# ============================================================
 # SIGNALS PAR ACTIF
-# ============================================================
 
 def predict_one_step(
     features: pd.DataFrame,
@@ -1019,10 +989,7 @@ def build_asset_signal_table(ticker: str, ohlc: pd.DataFrame, cfg: Config) -> Di
         "coef_same_latest": last_coef_same,
     }
 
-
-# ============================================================
 # ALLOCATION DEFENSIVE
-# ============================================================
 
 def build_defensive_weights(asset_data: Dict[str, Dict[str, Any]], date_t: pd.Timestamp, next_date: pd.Timestamp, residual_weight: float, cfg: Config) -> Dict[str, float]:
     if residual_weight <= 0:
@@ -1056,10 +1023,7 @@ def build_defensive_weights(asset_data: Dict[str, Dict[str, Any]], date_t: pd.Ti
     w = residual_weight * (s / s.sum())
     return {k: float(v) for k, v in w.items() if v > 0}
 
-
-# ============================================================
 # PORTEFEUILLE
-# ============================================================
 
 def simulate_portfolio(asset_data: Dict[str, Dict[str, Any]], cfg: Config) -> Dict[str, Any]:
     common_dates = None
@@ -1337,10 +1301,7 @@ def simulate_portfolio(asset_data: Dict[str, Dict[str, Any]], cfg: Config) -> Di
         "common_dates": common_dates,
     }
 
-
-# ============================================================
 # BENCHMARKS
-# ============================================================
 
 def benchmark_buy_and_hold_open_to_open(asset_data: Dict[str, Dict[str, Any]], ticker: str, dates: pd.DatetimeIndex, name: str, initial_capital: float) -> Dict[str, Any]:
     sig = asset_data[ticker]["signals"]
@@ -1444,10 +1405,7 @@ def benchmark_defensive_blend(asset_data: Dict[str, Dict[str, Any]], dates: pd.D
     metrics = performance_metrics(equity, ret_s, "Defensive Sleeve EW")
     return {"equity": equity, "returns": ret_s, "metrics": metrics}
 
-
-# ============================================================
 # HTML
-# ============================================================
 
 def make_portfolio_dashboard_html(
     portfolio: Dict[str, Any],
@@ -1605,10 +1563,7 @@ def make_portfolio_dashboard_html(
     pio.write_html(fig, file=out_path, include_plotlyjs="cdn", full_html=True)
     return out_path
 
-
-# ============================================================
 # EXPORTS
-# ============================================================
 
 def export_outputs(
     asset_data: Dict[str, Dict[str, Any]],
@@ -1648,10 +1603,7 @@ def export_outputs(
 
     return paths
 
-
-# ============================================================
 # MAIN
-# ============================================================
 
 def main() -> None:
     cfg = Config(
